@@ -90,7 +90,7 @@ Struktur screennya sebagai berikut:
                 -   Chatlist Screen
                     >   Chat Screen
         =   Tab Nav
-            >   Home
+            >   Home (MainScreen)
                 -   Ads / Picture News block
                 -   Services Icon
                     >  Education Plans
@@ -110,7 +110,7 @@ Struktur screennya sebagai berikut:
                     -  Last test/exams.
                     -  Homework List
             >   Transaction
-                >   TransactionList Screen
+                -   TransactionList Screen
                     -  TransactionDetail Screen
             >   Profile
                 >   Profile Screen
@@ -131,6 +131,13 @@ Untuk persiapkan icon kita install dulu semua. Matikan expo server, lalu jalanka
 expo install react-native-svg
 expo install @ui-kitten/eva-icons
 ```
+
+> **Catatan:** Sebenarnya anda dapat menggunakan yarn untuk menginstall dependency. Tapi pengalaman penulis
+jika anda tidak menggunakan expo sebagai dependency manager, pada saat runtime expo kerap mengeluh ketidakcocokan
+versi dengan bawaannya. Ini karena SDK release terakhir expo biasanya masih tertinggal versinya dibanding library-library 
+sekitar react-native yang sudah release. Nah agar tidak pusing kepala dan membuang waktu, sangat disarankan
+untuk mengikuti aturan ini.
+
 
 Berikut code `screens/SplashScreen.js`:
 ```js
@@ -227,7 +234,7 @@ dengan adanya `react-navigation`.
 
 Kita install dulu `react-navigation` dengan yarn:
 ```bash
-yarn add react-navigation
+expo install react-navigation
 expo install react-native-gesture-handler react-native-reanimated
 ```
 
@@ -271,7 +278,175 @@ Ubah baris teks `Skip` di `SplashScreen.js` menjadi seperti ini:
 <Text style={{color: 'blue', marginTop: 15}} onPress={()=> { props.navigation.navigate('Main'); }}>Skip</Text>
 ```
 
-Hasilnya;
+Hasilnya:
 [![uik_splash_skip_nav](/images/mobile/react_native/uik_splash_skip_nav.gif)](/images/mobile/react_native/uik_splash_skip_nav.gif)
 
 
+## Navigasi Tab
+
+Sekarang kita akan menambahkan tab beserta screen yang menjadi sasaran tab.
+
+
+## Membuat Screen-Screen Anggota Tab
+
+Kita buat screen2nya dulu:
+
+`UpdatesScreen.js`:
+```js
+import React from "react";
+import { StyleSheet } from "react-native";
+import { Layout, Text } from "react-native-ui-kitten";
+
+const UpdatesScreen = props => {
+  return (
+    <Layout style={styles.screen}>
+      <Text>Updates Screen</Text>
+    </Layout>
+  );
+};
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  }
+});
+
+export default UpdatesScreen;
+```
+
+`MonitorScreen.js`:
+```js
+import React from "react";
+import { StyleSheet } from "react-native";
+import { Layout, Text } from "react-native-ui-kitten";
+
+const MonitorScreen = props => {
+  return (
+    <Layout style={styles.screen}>
+      <Text>Monitor Screen</Text>
+    </Layout>
+  );
+};
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  }
+});
+
+export default MonitorScreen;
+```
+
+
+`TransactionScreen.js`:
+```js
+import React from "react";
+import { StyleSheet } from "react-native";
+import { Layout, Text } from "react-native-ui-kitten";
+
+const TransactionScreen = props => {
+  return (
+    <Layout style={styles.screen}>
+      <Text>Transaction Screen</Text>
+    </Layout>
+  );
+};
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  }
+});
+
+export default TransactionScreen;
+```
+
+`ProfileScreen.js`:
+```js
+import React from "react";
+import { StyleSheet } from "react-native";
+import { Layout, Text } from "react-native-ui-kitten";
+
+const ProfileScreen = props => {
+  return (
+    <Layout style={styles.screen}>
+      <Text>Profile Screen</Text>
+    </Layout>
+  );
+};
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  }
+});
+
+export default ProfileScreen;
+```
+
+### Menginstall Library Tab
+
+Saat dokumentasi ini ditulis, fungsi `createBottomTabNavigator` untuk membuat
+tab di bagian bawah aplikasi sudah dipisahkan di package sendiri. Maka kita install dulu:
+
+```bash
+expo install react-navigation-tabs
+```
+
+### Mengupdate Main Navigator
+
+Kemudian kita update `navigator/MainNavigator.js` menjadi seperti ini:
+```js
+import { createAppContainer, createSwitchNavigator } from 'react-navigation';
+import { createBottomTabNavigator } from 'react-navigation-tabs';
+
+import MainScreen from '../screens/MainScreen';
+import SplashScreen from '../screens/SplashScreen';
+import UpdatesScreen from '../screens/UpdatesScreen';
+import MonitorScreen from '../screens/MonitorScreen';
+import TransactionScreen from '../screens/TransactionScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+
+// Buat Tab Navigator. MainScreen turun menjadi anggotanya
+const mainTabNavigatorCfg =   {
+    Home: {
+      screen: MainScreen
+    },
+    Updates: {
+      screen: UpdatesScreen
+    },
+    Monitor: {
+      screen: MonitorScreen
+    },
+    Transaction: {
+      screen: TransactionScreen
+    },
+    Profile: {
+      screen: ProfileScreen
+    }
+};
+
+const MainTabNavigator = createBottomTabNavigator(mainTabNavigatorCfg);
+
+// MainScreen Diganti MainTabNavigator
+const MainNavigator = createSwitchNavigator({
+    Splash: SplashScreen,
+    Main: MainTabNavigator
+},{
+    initialRouteName: 'Splash' 
+});
+
+
+export default createAppContainer(MainNavigator); 
+```
+
+Berikut hasilnya:
+[![uik_main_tab_nav](/images/mobile/react_native/uik_main_tab_nav.gif)](/images/mobile/react_native/uik_main_tab_nav.gif)
