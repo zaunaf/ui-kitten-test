@@ -25,7 +25,7 @@ cd ui_kitten_test_app
 
 Lalu kita install UI-Kitten
 ```js
-yarn add react-native-ui-kitten @eva-design/eva
+expo install react-native-ui-kitten @eva-design/eva
 ```
 
 ### Persiapan Lingkungan Pengembangan
@@ -64,7 +64,7 @@ export default App;
 
 Buat terminal baru, jalankan aplikasi dengan expo:
 ```
-yarn start
+expo start
 ```
 
 Setelah expo siap, jika emulator ada android pencet `a`. Jika ios pencet `i`.
@@ -128,8 +128,8 @@ dan menginstal dependency, satu terminal bebas untuk  manajemen git.
 Untuk persiapkan icon kita install dulu semua. Matikan expo server, lalu jalankan ini:
 
 ```bash
-yarn add react-native-svg
-yarn add @ui-kitten/eva-icons
+expo install react-native-svg
+expo install @ui-kitten/eva-icons
 ```
 
 Berikut code `screens/SplashScreen.js`:
@@ -187,7 +187,7 @@ export default App;
 Untuk menambahkan `<SplashScreen />` anda langsung aja ketik di antara <ApplicationProvider>
 dan gunakan code completionnya. Code `import SplashScreen .. ` akan muncul dengan sendirinya.
 
-= uik_splash_screen.png = 
+[![uik_splash_screen](/images/mobile/react_native/uik_splash_screen.png)](/images/mobile/react_native/uik_splash_screen.png)
 
 ### Membuat MainScreen
 
@@ -215,4 +215,63 @@ const styles = StyleSheet.create({
 
 export default MainScreen;
 ```
+
+## Navigasi
+
+Anda mungkin familiar dalam hal navigasi antar modul aplikasi pada Native Android.
+Cukup rumit bukan? Bagaimana cara membuat navigasi tab, menambahkan frame, mendeteksi event,
+melakukan intent serta wiring data yang cukup merepotkan. Nah dengan react native semua lebih praktis
+dengan adanya `react-navigation`.
+
+### Instalasi 
+
+Kita install dulu `react-navigation` dengan yarn:
+```bash
+yarn add react-navigation
+expo install react-native-gesture-handler react-native-reanimated
+```
+
+### MainNavigator
+
+Buat folder `navigation`, tambahkan file `navigation/MainNavigator.js`:
+```js
+import { createAppContainer, createSwitchNavigator } from 'react-navigation';
+import MainScreen from '../screens/MainScreen';
+import SplashScreen from '../screens/SplashScreen';
+
+const MainNavigator = createSwitchNavigator({
+    Splash: SplashScreen,
+    Main: MainScreen
+},{
+    initialRouteName: 'Splash'
+});
+
+export default createAppContainer(MainNavigator); 
+```
+
+### Tipe-tipe Navigator
+
+Ada beberapa tipe navigator yang bisa kita pakai. Secara garis besar ada  :
+-   Tab Navigation
+-   Drawer Navigation
+-   Stack Navigation
+-   Switch Navigation
+
+Kita bisa mempelajari lebih jauh di sini konsepnya di referensi berikut: 
+https://reactnavigation.org/docs/en/tab-based-navigation.html
+
+Di sini kita menggunakan `switchNavigator`. Artinya screen yang menjadi sasaran
+akan menggantikan screen sebelumnya. Jika user menekan back, maka aplikasi akan keluar.
+
+### Linking Navigation
+
+Karena Google uthentication kita belum beroperasi, kita gunakan skip dulu untuk ke MainScreen:
+Ubah baris teks `Skip` di `SplashScreen.js` menjadi seperti ini:
+```js
+<Text style={{color: 'blue', marginTop: 15}} onPress={()=> { props.navigation.navigate('Main'); }}>Skip</Text>
+```
+
+Hasilnya;
+[![uik_splash_skip_nav](/images/mobile/react_native/uik_splash_skip_nav.gif)](/images/mobile/react_native/uik_splash_skip_nav.gif)
+
 
