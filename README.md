@@ -450,3 +450,126 @@ export default createAppContainer(MainNavigator);
 
 Berikut hasilnya:
 [![uik_main_tab_nav](/images/mobile/react_native/uik_main_tab_nav.gif)](/images/mobile/react_native/uik_main_tab_nav.gif)
+
+### Menambahkan Icon pada Tab
+
+Expo sudah memberikan wrapping yang baik terhadap vector icons. Baca dokumentasinya di sini:
+https://docs.expo.io/versions/latest/guides/icons/
+
+Untuk referensi icon yang bisa dipakai, buka di sini:
+https://expo.github.io/vector-icons/
+
+Jika anda sudah menentukan icon, kita coba. Ubah `mainTabNavigatorCfg` menjadi berikut:
+
+```js
+const mainTabNavigatorCfg =   {
+    Home: {
+      screen: MainScreen,
+      navigationOptions: {
+        tabBarOptions: {
+          showLabel: false
+        },
+        tabBarIcon: (tabInfo) => {
+          return <Feather name="home" size={25} color={tabInfo.tintColor} />;
+        }
+      }
+    },
+    Updates: {
+      screen: UpdatesScreen,
+      navigationOptions: {
+        tabBarOptions: {
+          showLabel: false
+        },
+        tabBarIcon: (tabInfo) => {
+          return <FontAwesome name="newspaper-o" size={25} color={tabInfo.tintColor} />;
+        }
+      }
+    },
+    Monitor: {
+      screen: MonitorScreen,
+      navigationOptions: {
+        tabBarOptions: {
+          showLabel: false
+        },
+        tabBarIcon: (tabInfo) => {
+          return <Feather name="activity" size={25} color={tabInfo.tintColor} />;
+        }
+      }
+    },
+    Transaction: {
+      screen: TransactionScreen,
+      navigationOptions: {
+        tabBarOptions: {
+          showLabel: false
+        },
+        tabBarIcon: (tabInfo) => {
+          return <Feather name="repeat" size={25} color={tabInfo.tintColor} />;
+        }
+      }
+    },
+    Profile: {
+      screen: ProfileScreen,
+      navigationOptions: {
+        tabBarOptions: {
+          showLabel: false
+        },
+        tabBarIcon: (tabInfo) => {
+          return <Feather name="user" size={25} color={tabInfo.tintColor} />;
+        }
+      }
+    }
+};
+```
+Konfigurasi di atas menampilkan icon dan menyembunyikan labelnya. Jika anda
+ingin menampilkan label, hapus saja bagian ini di tiap tab:
+```js
+        tabBarOptions: {
+          showLabel: false
+        },
+```
+
+[![uik_bottom_nav_icons](/images/mobile/react_native/uik_bottom_nav_icons.png)](/images/mobile/react_native/uik_bottom_nav_icons.png)
+
+
+### Menambahkan Badge pada Tab
+
+Mungkin anda ingin menambahkan badge pada icon anda, yang misalnya memberi tahu
+bahwa ada sejumlah sekian berita baru atau alert baru dari aplikasi.
+
+Kita install dulu:
+```bash
+expo install react-native-icon-badge 
+```
+
+Kemudian kita update salah satu icon, misal Updates:
+```js
+    Updates: {
+      screen: UpdatesScreen,
+      navigationOptions: {
+        tabBarOptions: {
+          showLabel: false
+        },
+        // tabBarIcon: (tabInfo) => {
+        //   return <FontAwesome name="newspaper-o" size={25} color={tabInfo.tintColor} />;
+        // }
+        tabBarIcon: ({tintColor}) => {
+          return (
+            <IconBadge
+              MainElement={<FontAwesome name='newspaper-o' size={25} color={tintColor} />}
+              BadgeElement={<Text style={{ color: 'white' }}>{3}</Text>}
+              IconBadgeStyle={{top: -8, right: -8, width:20, height:20, backgroundColor: '#FF0000'}}
+              Hidden={false}
+            />
+          );
+        }
+      }
+    },
+```
+
+[![uik_bottom_nav_icons_with_badge](/images/mobile/react_native/uik_bottom_nav_icons_with_badge.png)](/images/mobile/react_native/uik_bottom_nav_icons_with_badge.png)
+
+
+Nilai count, dimensi, offset badge ini harus diubah2 jika jumlah notifikasinya
+makin besar. Itu harus disimpan dalam state, dan harus ada kalkulasinya. Akan kita bahas di materi berikutnya nanti.
+
+
