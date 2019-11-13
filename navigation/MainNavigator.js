@@ -3,6 +3,7 @@ import { Text } from 'react-native';
 
 import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
+import { createStackNavigator } from 'react-navigation-stack';
 
 import IconBadge from 'react-native-icon-badge';
 import { Feather, FontAwesome } from '@expo/vector-icons';
@@ -85,13 +86,45 @@ const mainTabNavigatorCfg =   {
 
 const MainTabNavigator = createBottomTabNavigator(mainTabNavigatorCfg);
 
+// Add header Titles to MainTabNavigator Tabs
+MainTabNavigator.navigationOptions = ({ navigation }) => {
+  let { routeName } = navigation.state.routes[navigation.state.index];
+  let title;
+  switch (routeName) {
+    case 'Home':
+      title = 'UIK Test App';
+      break;
+    case 'Updates':
+      title = 'Updates';
+      break;
+    case 'Monitor':
+      title = 'Monitor';
+      break;
+    case 'Transaction':
+      title = 'Transaction';
+      break;
+    case 'Profile':
+      title = 'Profile';
+      break;
+  }
+  return {
+    title,
+  };
+};
+
+// Membungkus MainTabNavigator dalam MainTabNavigatorStack
+const MainStackNavigator = createStackNavigator({
+  Root: {
+    screen: MainTabNavigator
+  }
+});
+
 // MainScreen Diganti MainTabNavigator
 const MainNavigator = createSwitchNavigator({
     Splash: SplashScreen,
-    Main: MainTabNavigator
+    Main: MainStackNavigator
 },{
     initialRouteName: 'Splash'
 });
-
 
 export default createAppContainer(MainNavigator); 

@@ -1,6 +1,10 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { Layout, Text } from "react-native-ui-kitten";
+import Colors from '../constants/Colors';
+import IconBadge from 'react-native-icon-badge';
+import { Feather, FontAwesome } from '@expo/vector-icons';
+
 
 const UpdatesScreen = props => {
   return (
@@ -8,6 +12,27 @@ const UpdatesScreen = props => {
       <Text>Updates Screen</Text>
     </Layout>
   );
+};
+
+UpdatesScreen.navigationOptions = {
+  headerTitle: 'Updates',
+  headerStyle: {
+    backgroundColor: ( Platform.OS === 'ios') ? 'white' : Colors.primaryColor
+  },
+  headerTintColor: ( Platform.OS === 'ios') ? Colors.primaryColor : 'white',
+  tabBarOptions: {
+    showLabel: false
+  },
+  tabBarIcon: ({tintColor}) => {
+    return (
+      <IconBadge
+        MainElement={<FontAwesome name='newspaper-o' size={25} color={tintColor} />}
+        BadgeElement={<Text style={{ color: 'white' }}>{3}</Text>}
+        IconBadgeStyle={{top: -8, right: -8, width:20, height:20, backgroundColor: '#FF0000'}}
+        Hidden={false}
+      />
+    );
+  }
 };
 
 const styles = StyleSheet.create({

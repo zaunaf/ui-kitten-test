@@ -30,11 +30,37 @@ expo install react-native-ui-kitten @eva-design/eva
 
 ### Persiapan Lingkungan Pengembangan
 
-Buka folder tersebut pada VSCode.
+#### VSCode
+
+Buka folder tersebut pada VSCode. Jangan lupa install plugin-plugin berikut:
+-   React Native Tools
+-   ES7 React/Redux/GraphQL/React-Native snippets (baca keterangan di halaman plugin)
+-   Prettier Code formatter (gunakan Ctrl-Shift-P -> format document. Atau select all, Ctrl-K Ctrl-F)
+
+Set juga bash sebagai terminal default, 1 untuk git, 1 untuk expo, 1 untuk emulator jika anda
+tidak ingin membuka Android untuk menjalankan emulator.
+
+[![uik_vscode](/images/mobile/react_native/uik_vscode.png)](/images/mobile/react_native/uik_vscode.png)
+
+### Menjalankan Emulator dari Terminal
+Cari PATH ke emulator anda, masukkan ke Environment. Biasanya posisinya di sini untuk windows:
+`%USERPROFILE%\AppData\Local\ANdroid\Sdk\emulator`.
+
+Jika anda sudah membuat emulator, cari daftarnya dengan
+```bash
+$ emulator -list-avds
+3.7_WVGA_Nexus_One_API_29
+Pixel_2_API_27
+```
+Jalankan salah satu dengan:
+```bash
+$ emulator -avd Pixel_2_API_27
+```
+
+### Menonaktifkan Antivirus untuk Folder Code
 Tambahkan juga folder tersebut pada AntiVirus anda agar performance buildnya tidak terganggu:
 
-==gambar
-uik_antivirus_exclusion.png
+[![uik_antivirus_exclusion](/images/mobile/react_native/uik_antivirus_exclusion.png)](/images/mobile/react_native/uik_antivirus_exclusionpng)
 
 Dengan account firebase anda, buat juga project dengan nama `ui-kitten-test` untuk memudahkan.
 
@@ -98,7 +124,9 @@ Struktur screennya sebagai berikut:
                     >  Support Services
             >   Updates
                 -   News/Feed Screen
+                    >  News Detail
                 -   Mailbox Screen
+                    >  Message Screen
             >   Monitor
                 -   Monitor Dashboard Screen
                     -  Scroll pictures for kids
@@ -114,6 +142,8 @@ Struktur screennya sebagai berikut:
                     -  TransactionDetail Screen
             >   Profile
                 >   Profile Screen
+                    >   Edit Profile Screen
+                    >   AddEditChildScreen
 ```
 
 ## Screens
@@ -571,5 +601,77 @@ Kemudian kita update salah satu icon, misal Updates:
 
 Nilai count, dimensi, offset badge ini harus diubah2 jika jumlah notifikasinya
 makin besar. Itu harus disimpan dalam state, dan harus ada kalkulasinya. Akan kita bahas di materi berikutnya nanti.
+
+
+## Menambahkan Header
+React Navigation Tab tidak secara default menambahkan header pada screen.  Ini karena banyak app yang tidak 
+menyeragamkan setiap tabnya dengan ada headerTitle. Ini sebenarnya praktek yang baik. Jika memang kita membutuhkan
+title header, lebih baik buat stack navigation lagi untuk setiap screen dan memunculkan header jika kita membutuhkan.
+
+Namun jika aplikasi kita simpel dan pada setiap tab kita ingin memunculkan judul, drawer dan button yang sama,
+kita bisa menambahkan `navigationOptions` pada NavigationTab yang sudah kita set kemudian membungkus tab tadi 
+dengan navigation stack sebelum dirangkai pada switchNavigator bersama2 splash screen.
+
+### Menginstall 
+Karena kita akan menggunakan `createStackNavigator`, kita install dulu:
+```
+expo install react-navigation-stack
+```
+
+### Menambahkan Header dengan Wrapping Stack
+
+Kita tambahkan codenya
+```js
+...
+import { createStackNavigator } from 'react-navigation-stack';
+...
+const MainTabNavigator = createBottomTabNavigator(mainTabNavigatorCfg);
+
+// Add header Titles to MainTabNavigator Tabs
+MainTabNavigator.navigationOptions = ({ navigation }) => {
+  let { routeName } = navigation.state.routes[navigation.state.index];
+  let title;
+  switch (routeName) {
+    case 'Home':
+      title = 'UIK Test App';
+      break;
+    case 'Updates':
+      title = 'Updates';
+      break;
+    case 'Monitor':
+      title = 'Monitor';
+      break;
+    case 'Transaction':
+      title = 'Transaction';
+      break;
+    case 'Profile':
+      title = 'Profile';
+      break;
+  }
+  return {
+    title,
+  };
+};
+
+// Membungkus MainTabNavigator dalam MainTabNavigatorStack
+const MainStackNavigator = createStackNavigator({
+  Root: {
+    screen: MainTabNavigator
+  }
+});
+
+// MainScreen Diganti MainTabNavigator
+const MainNavigator = createSwitchNavigator({
+    Splash: SplashScreen,
+    Main: MainStackNavigator
+},{
+    initialRouteName: 'Splash'
+});
+...
+
+```
+
+Hasilnya:
+[![uik_tab_nav_header_titles](/images/mobile/react_native/uik_tab_nav_header_titles.gif)](/images/mobile/react_native/uik_tab_nav_header_titles.gif)
 
 
