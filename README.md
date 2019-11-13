@@ -603,7 +603,7 @@ Nilai count, dimensi, offset badge ini harus diubah2 jika jumlah notifikasinya
 makin besar. Itu harus disimpan dalam state, dan harus ada kalkulasinya. Akan kita bahas di materi berikutnya nanti.
 
 
-## Menambahkan Header
+## Menambahkan Header secara Instan
 React Navigation Tab tidak secara default menambahkan header pada screen.  Ini karena banyak app yang tidak 
 menyeragamkan setiap tabnya dengan ada headerTitle. Ini sebenarnya praktek yang baik. Jika memang kita membutuhkan
 title header, lebih baik buat stack navigation lagi untuk setiap screen dan memunculkan header jika kita membutuhkan.
@@ -674,4 +674,213 @@ const MainNavigator = createSwitchNavigator({
 Hasilnya:
 [![uik_tab_nav_header_titles](/images/mobile/react_native/uik_tab_nav_header_titles.gif)](/images/mobile/react_native/uik_tab_nav_header_titles.gif)
 
+
+## Reorganisasi Header dengan Menu Icon
+
+Jalur yang paling tepat untuk menambahkan header adalah dengan melengkapi aplikasi.
+Ini karena aplikasi yang besar biasanya setiap tab memiliki screen-screen lain yang 
+harus ditampilkan secara stacking. Bisa dilihat pula, desain aplikasi kita di atas
+pun sudah seperti itu.
+
+#### Menambahkan Theme Warna
+
+Aplikasi biasanya memiliki tema warna. Khususnya aplikasi di bawah android,  
+konsistensinya setidaknya ada berupa di screen-screen dengan back navigation.
+Kita coba integrasikan di sini. Sebelumnya silakan cari dulu kombinasi warna yang
+sesuai dengan selera anda. Sebagai contoh anda bisa coba https://coolors.co/app
+
+Kita tambah di file `constants/Colors.js`. Sebagai contoh isinya:
+```js
+export default {
+    primaryColor: '#6AB187',
+    primaryVariant: '#20948B',
+    secondaryColor: '#DE7A22',
+    secondaryVariant: '#F4CC70',
+}
+```
+
+Colors ini kita bisa import di mana saja kita butuh theming/pewarnaan:
+```js
+import Colors from "../constants/Colors";
+```
+
+#### Melengkapi Folder dan Screen
+
+Kita coba melengkapi aplikasi. Pertama kita buat folder2 di bawah ini, dan
+menambahkan file2 di bawahnya:
+```
++   Main
+    AlertScreen.js
+    ChatScreen.js
++   Monitor
+    PositionScreen.js
++   Profile
+    AddEditChildScreen.js
+    EditProfileScreen.js
++   Transaction
+    TransactionDetailScreen.js
++   Updates
+    MailDetailScreen.js
+    NewsDetailScreen.js
+```
+> Catatan: Organisasi folder ini penting khususnya untuk Aplikasi yang akan
+berkembang menjadi besar. Makin terorganisir makin mudah mengelolanya.
+
+Untuk isinya, buat saja file generik seperti di atas, yang penting menampilkan
+informasi screen apa yang sedang tampil.
+
+#### Melengkapi Navigasi
+
+Kita lengkapi screen sesuai desain. Kita pisahkan masing-masing berupa StackNavigation.
+```js
+import Colors from "../constants/Colors";
+
+// Reusable Options yang disesuaikan dengan Platform
+const defaultStackNavigationOptions = {
+  headerStyle: {
+    backgroundColor: Platform.OS === "android" ? Colors.primaryColor : ""
+  },
+  headerTintColor:
+    Platform.OS === "android" ? "white" : Colors.primaryColor,
+  headerTitle: "A Screen"
+};
+
+// HomeNavigator
+const HomeNavigator = createStackNavigator({
+  Home: {
+    screen: MainScreen,
+    navigationOptions: {
+      headerTitle: 'UIK Test App'
+    }
+  },
+  Alert: { 
+    screen: AlertScreen,
+    navigationOptions: {
+      headerTitle: 'Alert'
+    }
+
+  },
+  Chat: { 
+    screen: ChatScreen,
+    navigationOptions: {
+      headerTitle: 'Chat'
+    }
+  }
+},{
+  defaultNavigationOptions: defaultStackNavigationOptions
+});
+
+// ProfileNavigator
+const UpdatesNavigator = createStackNavigator({
+  Updates: {
+    screen: UpdatesScreen,
+    navigationOptions: {
+      headerTitle: 'Updates'
+    }
+  },
+  News: {
+    screen: NewsScreen,
+    navigationOptions: {
+      headerTitle: 'News'
+    }
+  },
+  Mail: {
+    screen: MailScreen,
+    navigationOptions: {
+      headerTitle: 'Mail'
+    }
+  },
+},{
+  defaultNavigationOptions: defaultStackNavigationOptions
+});
+
+// MonitorNavigator
+const MonitorNavigator = createStackNavigator({
+  Monitor: {
+    screen: MonitorScreen,
+    navigationOptions: {
+      headerTitle: 'Activities'
+    }
+  },
+  Position: { 
+    screen: PositionScreen,
+    navigationOptions: {
+      headerTitle: 'Position'
+    }
+  }
+},{
+  defaultNavigationOptions: defaultStackNavigationOptions
+});
+
+
+// TransactionNavigator
+const TransactionNavigator = createStackNavigator({
+  Transaction: {
+    screen: TransactionScreen,
+    navigationOptions: {
+      headerTitle: 'Transaction'
+    }
+  },
+  TransactionDetail: { 
+    screen: TransactionDetailScreen,
+    navigationOptions: {
+      headerTitle: 'Transaction Detail'
+    }
+  }
+},{
+  defaultNavigationOptions: defaultStackNavigationOptions
+});
+
+// ProfileNavigator
+const ProfileNavigator = createStackNavigator({
+  Profile: {
+    screen: ProfileScreen,
+    navigationOptions: {
+      headerTitle: 'Profile'
+    }
+  },
+  AddEditChild: { 
+    screen: AddEditChildScreen,
+    navigationOptions: {
+      headerTitle: 'Childs'
+    }
+  },
+  EditProfile: { 
+    screen: EditProfileScreen,
+    navigationOptions: {
+      headerTitle: 'Edit Profile'
+    }
+  }
+},{
+  defaultNavigationOptions: defaultStackNavigationOptions
+});
+```
+
+Setelah itu kita edit tab agar tidak langsung memanggil screen tapi memanggil navigatornya masing2:
+```js
+...
+const mainTabNavigatorCfg =   {
+    Home: {
+      screen: HomeNavigator,
+      ...
+
+    Updates: {
+      screen: UpdatesNavigator,
+      ...
+
+    Monitor: {
+      screen: MonitorNavigator,
+      ...
+
+    Transaction: {
+      screen: TransactionNavigator,
+      ...
+
+    Profile: {
+      screen: ProfileNavigator,
+      ...
+
+```
+
+[![uik_tab_nav_header_titles_color](/images/mobile/react_native/uik_tab_nav_header_titles_color.gif)](/images/mobile/react_native/uik_tab_nav_header_titles_color.gif)
 
