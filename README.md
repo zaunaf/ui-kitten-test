@@ -489,9 +489,16 @@ https://docs.expo.io/versions/latest/guides/icons/
 Untuk referensi icon yang bisa dipakai, buka di sini:
 https://expo.github.io/vector-icons/
 
-Jika anda sudah menentukan icon, kita coba. Ubah `mainTabNavigatorCfg` menjadi berikut:
-
+Kita install dulu:
 ```js
+expo install --save @expo/vector-icons
+```
+
+Jika anda sudah menentukan icon, kita coba. Ubah `mainTabNavigatorCfg` menjadi berikut:
+```js
+import { Feather, FontAwesome } from '@expo/vector-icons';
+...
+
 const mainTabNavigatorCfg =   {
     Home: {
       screen: MainScreen,
@@ -566,41 +573,111 @@ ingin menampilkan label, hapus saja bagian ini di tiap tab:
 Mungkin anda ingin menambahkan badge pada icon anda, yang misalnya memberi tahu
 bahwa ada sejumlah sekian berita baru atau alert baru dari aplikasi.
 
+> **Catatan:** Jika anda mengikuti tutorial ini dari repo git, anda akan menemukan
+bahwa sebelumnya kami menggunakan  `react-native-icon-badge`, namun ternyata lebih praktis
+menggunakan `Badge` dari `react-native-elements`.
+
 Kita install dulu:
 ```bash
-expo install react-native-icon-badge 
+expo install react-native-elements
 ```
 
-Kemudian kita update salah satu icon, misal Updates:
+Kita buat fungsi penempel badge yang dapat menempelkan badge langsung pada `Icon`.
+Taruh saja di `components/badgedIcons/withBadge.js`:
+```js
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { Badge } from "react-native-elements";
+
+const withBadge = (value, options = {}) => WrappedComponent =>
+  class extends React.Component {
+    render() {
+      const { top = -5, right = -20, left = 0, bottom = 0, hidden = !value, ...badgeProps } = options;
+      const badgeValue = typeof value === "function" ? value(this.props) : value;
+      let width = (value > 10) ? (value > 100) ? 26 : 21 : 18;
+      
+      const styles = StyleSheet.create({
+        badge: {
+          borderRadius: 9,
+          height: 18,
+          minWidth: 0,
+          width: width
+        },
+        badgeContainer: {
+          position: "absolute"
+        },
+        badgeText: {
+          fontSize: 10,
+          paddingHorizontal: 0
+        }
+      });
+
+      return (
+        <View>
+          <WrappedComponent {...this.props} />
+          {!hidden && (
+            <Badge
+              badgeStyle={styles.badge}
+              textStyle={styles.badgeText}
+              value={badgeValue}
+              status="error"
+              containerStyle={[styles.badgeContainer, { top, right, left, bottom }]}
+              {...badgeProps}
+            />
+          )}
+        </View>
+      );
+    }
+  };
+
+export default withBadge;
+```
+
+Setelah itu kita buat komponen2 yang membungkus icon2 standard dari expo menjadi badged.
+Agar mudah kita taruh di `components/badgedIcons/index.js`:
+```js
+import React from "react";
+import { Feather, FontAwesome, Ionicons } from "@expo/vector-icons";
+import withBadge from './withBadge';
+
+export const FeatherBadgedIcon = (props) => {
+    const Icon = withBadge(props.count)(Feather);
+    return <Icon {...props} />
+}
+
+export const FontAwesomeBadgedIcon = (props) => {
+    const Icon = withBadge(props.count)(FontAwesome);
+    return <Icon {...props} />
+}
+
+export const IoniconsBadgedIcon = (props) => {
+    const Icon = withBadge(props.count)(Ionicons);
+    return <Icon {...props} />
+}
+```
+
+Setelah itu kita terapkan pada icon Updates pada tab di file `MainNavigator.js` :
 ```js
     Updates: {
-      screen: UpdatesScreen,
+      screen: UpdatesNavigator,
       navigationOptions: {
         tabBarOptions: {
           showLabel: false
         },
-        // tabBarIcon: (tabInfo) => {
-        //   return <FontAwesome name="newspaper-o" size={25} color={tabInfo.tintColor} />;
-        // }
         tabBarIcon: ({tintColor}) => {
           return (
-            <IconBadge
-              MainElement={<FontAwesome name='newspaper-o' size={25} color={tintColor} />}
-              BadgeElement={<Text style={{ color: 'white' }}>{3}</Text>}
-              IconBadgeStyle={{top: -8, right: -8, width:20, height:20, backgroundColor: '#FF0000'}}
-              Hidden={false}
-            />
+            <FontAwesomeBadgedIcon name='newspaper-o' count={5} size={25} color={tintColor} />
           );
         }
       }
     },
 ```
 
+Hasilnya sbb:
 [![uik_bottom_nav_icons_with_badge](/images/mobile/react_native/uik_bottom_nav_icons_with_badge.png)](/images/mobile/react_native/uik_bottom_nav_icons_with_badge.png)
 
 
-Nilai count, dimensi, offset badge ini harus diubah2 jika jumlah notifikasinya
-makin besar. Itu harus disimpan dalam state, dan harus ada kalkulasinya. Akan kita bahas di materi berikutnya nanti.
+Nilai count pada badge ini harus diubah2 jika sesuai jumlah notifikasinya. Itu harus disimpan dalam state, dan harus ada kalkulasinya. Akan kita bahas di materi berikutnya nanti.
 
 
 ## Menambahkan Header secara Instan
@@ -682,7 +759,7 @@ Ini karena aplikasi yang besar biasanya setiap tab memiliki screen-screen lain y
 harus ditampilkan secara stacking. Bisa dilihat pula, desain aplikasi kita di atas
 pun sudah seperti itu.
 
-#### Menambahkan Theme Warna
+### Menambahkan Theme Warna
 
 Aplikasi biasanya memiliki tema warna. Khususnya aplikasi di bawah android,  
 konsistensinya setidaknya ada berupa di screen-screen dengan back navigation.
@@ -704,7 +781,7 @@ Colors ini kita bisa import di mana saja kita butuh theming/pewarnaan:
 import Colors from "../constants/Colors";
 ```
 
-#### Melengkapi Folder dan Screen
+### Melengkapi Folder dan Screen
 
 Kita coba melengkapi aplikasi. Pertama kita buat folder2 di bawah ini, dan
 menambahkan file2 di bawahnya:
@@ -729,7 +806,7 @@ berkembang menjadi besar. Makin terorganisir makin mudah mengelolanya.
 Untuk isinya, buat saja file generik seperti di atas, yang penting menampilkan
 informasi screen apa yang sedang tampil.
 
-#### Melengkapi Navigasi
+### Melengkapi Navigasi
 
 Kita lengkapi screen sesuai desain. Kita pisahkan masing-masing berupa StackNavigation.
 ```js
@@ -884,3 +961,309 @@ const mainTabNavigatorCfg =   {
 
 [![uik_tab_nav_header_titles_color](/images/mobile/react_native/uik_tab_nav_header_titles_color.gif)](/images/mobile/react_native/uik_tab_nav_header_titles_color.gif)
 
+### Menambahkan Tombol Icon untuk Membuka Child Screen
+
+Tombol icon cukup sederhana sebenarnya. Kita bisa pakai komponen yang sudah ada.
+yaitu `react-navigation-header-buttons`. 
+
+#### Installing
+
+Kita install dulu:
+```
+expo install react-navigation-header-buttons
+```
+
+#### Membuat Komponen HeaderButton
+
+Sebelum menggunakan, kita perlu membuat dulu komponen HeaderButton sesuai dengan icon yg akan dipakai.
+Agar fleksibel, kita buat 2 komponen, FeatherHeaderButton dan FontAwesomeHeaderButton. Kita masukkan juga
+support badged agar nanti tombol ini mudah ditandai. Supaya mudah diimport kita satukan dalam satu file 
+`components/headerButtons/index.js`:
+
+```js
+import React from "react";
+import { Platform } from "react-native";
+import { HeaderButton } from "react-navigation-header-buttons";
+import { Feather, FontAwesome } from "@expo/vector-icons";
+import Colors from "../../constants/Colors";
+import withBadge from "../badgedIcons/withBadge";
+
+export const FeatherHeaderButton = props => {
+  const BadgedIcon = withBadge(props.count)(Feather);
+  return (
+    <HeaderButton
+      {...props}
+      IconComponent={BadgedIcon}
+      iconSize={23}
+      color={(Platform.OS === 'android') ? 'white' : Colors.primaryColor}
+    />
+  );
+};
+
+export const FontAwesomeHeaderButton = props => {
+    const BadgedIcon = withBadge(props.count)(FontAwesome);
+    return (
+      <HeaderButton
+        {...props}
+        IconComponent={BadgedIcon}
+        iconSize={23}
+        color={(Platform.OS === 'android') ? 'white' : Colors.primaryColor}
+      />
+    );
+  };
+```
+#### Menggunakan Header Button
+
+Kembali ke `navigator/MainNavigator.js`, kita tambahkan:
+
+```js
+...
+import { HeaderButtons, Item } from 'react-navigation-header-buttons';
+import { FeatherHeaderButton, FontAwesomeHeaderButton } from '../components/headerButtons';
+import { Feather, FontAwesome } from '@expo/vector-icons';
+import { FeatherBadgedIcon, FontAwesomeBadgedIcon } from '../components/badgedIcons';
+```
+
+Dan kita ubah `HomeNavigator` jadi seperti ini:
+```js
+const HomeNavigator = createStackNavigator({
+  Home: {
+    screen: MainScreen,
+    // Ambil navigation sebagai parameter agar bisa navigate()
+    navigationOptions: ({ navigation }) => {
+      return ({
+        headerTitle: 'UIK Test App',
+        headerRight: (
+          <HeaderButtons HeaderButtonComponent={FeatherHeaderButton}>
+            <Item
+              title="Alert"
+              // badge count. Jika == 0, badge hilang
+              count={13}
+              // Pilih icon
+              iconName="bell"
+              // Buka AlertScreen sebagai stack
+              onPress={() => {
+                navigation.navigate("Alert")
+              }}
+            />
+            <Item
+              title="Chat"
+              // badge count
+              count={313}
+              // Pilih icon
+              iconName="message-square"
+              // Buka ChatScreen sebagai stack
+              onPress={() => {
+                navigation.navigate("Chat")
+              }}
+            />
+          </HeaderButtons>
+        )
+      });
+    }
+  },
+```
+
+Hasilnya:
+[![uik_headerbtn_badged](/images/mobile/react_native/uik_headerbtn_badged.gif)](/images/mobile/react_native/uik_headerbtn_badged.gif)
+
+Selanjutnya kita kerjakan hal yang sama untuk Profil (Edit, icon Pencil ke EditProfileScreen).
+
+
+## Menambahkan Modul Mockup dari UI Kitten
+
+Sebagaimana tujuan dari tutorial ini, kita menggunakan UI Kitten untuk membangun quick mock-up aplikasi mobile.
+Kita sudah punya cukup banyak screen (atau _container_ dalam istilah UI Kitten) yang kita bisa langsung use.
+
+Mohon perhatikan secara terperinci step-step yang diuraikan berikut ini:
+
+Pertama install requistry modul UIKitten:
+```bash
+expo install expo-media-library expo-permissions expo-camera react-native-keyboard-aware-scroll-view
+```
+
+Sambil menunggu, buka **bash shell** baru dan clone **kittenTricks**, aplikasi demo UI Kitten di folder lain.
+```bash
+git clone https://github.com/akveo/kittenTricks.git
+```
+
+Masuk ke folder `kittenTricks` kemudian install
+```bash
+yarn install
+```
+
+Pada folder ini sudah ada terinstall typescript compiler dan file konfiguraisinya, `tsconfig.ts`.
+Kita bisa melihat isinya:
+```js
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist/tsc-out",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "jsx": "react-native",
+    "module": "es2015",
+    "target": "es2017",
+    "lib": [
+      "es2015",
+      "es2016"
+    ],
+    "paths": {
+      "@src/*": ["./src/*"],
+      "@kitten/*": ["./node_modules/react-native-ui-kitten/*"]
+    },
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
+  },
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "./node_modules"
+  ]
+}
+```
+Untuk tahu bahwa typsecript compiler outputnya di `./dist/tsc-out`.
+Jalankan di bash shell anda (jangan pakai `cmd`, script tsc adalah script bash):
+```bash
+./node_modules/typescript/bin/tsc -w
+```
+
+Kemudian cek `dist/tsc-out`. Rename `tsc-out` menjadi `kitten`, kemudian salin ke folder
+proyek anda. Di root proyek anda ada `babel.config.js`, ubah menjadi seperti ini:
+
+```js
+module.exports = function(api) {
+  api.cache(true);
+  return {
+    presets: ['babel-preset-expo'],
+    plugins: [
+      [
+        'module-resolver',
+        {
+          alias: {
+            '@src': './kitten',
+            '@kitten': 'react-native-ui-kitten',
+          },
+        },
+      ],
+    ],
+  };
+};
+```
+Tambahkan juga di `.gitignore` agar folder kitten ini tidak memenuh2i repo anda:
+```
+kitten/
+```
+
+Salin file-file asset dari folder src di `kittenTricks` ke folder yg sama di bawah `kitten`:
+```js
+assets\fonts\*
+assets\icons\*
+assets\images\*
+```
+
+Nah sekarang kita sudah siap untuk me-reuse screen-screen pada kittenTricks.
+
+### Menambahkan Screen untuk Modul Home
+
+Untuk home kita ambil dari `ProductsListContainer`. Ubah file `screens/MainScreen.js`:
+```js
+import { ProductsListContainer } from '@src/containers/layouts/ecommerce';
+
+const MainScreen = props => {
+  return (
+    <Layout style={styles.screen}>
+      <ProductsListContainer {...props} />
+    </Layout>
+  );
+};
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    paddingVertical: 10
+  }
+});
+```
+Jangan lupa sesuaikan sampai stylesnya.
+
+
+### Menambahkan Screen untuk Modul Chat
+
+Untuk modul chat mengambil dari `ConversationsListContainer`. Ubah di `screens/Home/ChatScreen.js`:
+```js
+import { ConversationsListContainer } from '@src/containers/layouts/messaging';
+
+const ChatScreen = props => {
+  return (
+    <Layout style={styles.screen}>
+      <ConversationsListContainer {...props} />
+    </Layout>
+  );
+};
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center"
+  }
+});
+
+export default ChatScreen;
+```
+Jangan lupa sesuaikan sampai stylesnya .
+
+### Menambahkan Screen untuk Modul Updates
+
+Modul Updates sejatinya berupa berita. Kita update dari `ArticleList1Container`:
+
+```js
+import { ArticleList1Container } from '@src/containers/layouts/articles';
+
+const UpdatesScreen = props => {
+  return (
+    <Layout style={styles.screen}>
+      <ArticleList1Container {...props} />
+    </Layout>
+  );
+};
+```
+
+### Menambahkan Screen untuk Modul Profile
+
+Ada beberapa container yang bagus untuk profile. Silakan pilih salah satu. 
+Kita di sini menggunakan  `ProfileSettings1Container`:
+
+```js
+import { ProfileSettings1Container } from "@src/containers/layouts/social";
+
+const ProfileScreen = props => {
+  return (
+    <View style={styles.screen}>      
+      <ProfileSettings1Container {...props} style={{width: "100%"}} />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center"
+  }
+});
+
+export default ProfileScreen;
+
+```
+Sesuakan sampai stylesnya juga.

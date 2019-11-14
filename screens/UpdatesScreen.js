@@ -4,12 +4,12 @@ import { Layout, Text } from "react-native-ui-kitten";
 import Colors from '../constants/Colors';
 import IconBadge from 'react-native-icon-badge';
 import { Feather, FontAwesome } from '@expo/vector-icons';
-
+import { ArticleList1Container } from '@src/containers/layouts/articles';
 
 const UpdatesScreen = props => {
   return (
     <Layout style={styles.screen}>
-      <Text>Updates Screen</Text>
+      <ArticleList1Container {...props} />
     </Layout>
   );
 };
@@ -38,6 +38,7 @@ UpdatesScreen.navigationOptions = {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center"
   }

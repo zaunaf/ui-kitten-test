@@ -5,9 +5,6 @@ import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
 import { createStackNavigator } from 'react-navigation-stack';
 
-import IconBadge from 'react-native-icon-badge';
-import { Feather, FontAwesome } from '@expo/vector-icons';
-
 import SplashScreen from '../screens/SplashScreen';
 
 import MainScreen from '../screens/MainScreen';
@@ -30,6 +27,12 @@ import EditProfileScreen from '../screens/Profile/EditProfileScreen';
 
 import Colors from "../constants/Colors";
 
+import { HeaderButtons, Item } from 'react-navigation-header-buttons';
+import { FeatherHeaderButton, FontAwesomeHeaderButton } from '../components/headerButtons';
+import { Feather, FontAwesome } from '@expo/vector-icons';
+import { FeatherBadgedIcon, FontAwesomeBadgedIcon } from '../components/badgedIcons';
+
+
 // Reusable Options yang disesuaikan dengan Platform
 const defaultStackNavigationOptions = {
   headerStyle: {
@@ -40,12 +43,40 @@ const defaultStackNavigationOptions = {
   headerTitle: "A Screen"
 };
 
-// HomeNavigator
 const HomeNavigator = createStackNavigator({
   Home: {
     screen: MainScreen,
-    navigationOptions: {
-      headerTitle: 'UIK Test App'
+    // Ambil navigation sebagai parameter agar bisa navigate()
+    navigationOptions: ({ navigation }) => {
+      return ({
+        headerTitle: 'UIK Test App',
+        headerRight: (
+          <HeaderButtons HeaderButtonComponent={FeatherHeaderButton}>
+            <Item
+              title="Alert"
+              // badge count. Jika == 0, badge hilang
+              count={13}
+              // Pilih icon
+              iconName="bell"
+              // Buka AlertScreen sebagai stack
+              onPress={() => {
+                navigation.navigate("Alert")
+              }}
+            />
+            <Item
+              title="Chat"
+              // badge count. Jika == 0, badge hilang
+              count={125}
+              // Pilih icon
+              iconName="message-square"
+              // Buka ChatScreen sebagai stack
+              onPress={() => {
+                navigation.navigate("Chat")
+              }}
+            />
+          </HeaderButtons>
+        )
+      });
     }
   },
   Alert: { 
@@ -130,8 +161,23 @@ const TransactionNavigator = createStackNavigator({
 const ProfileNavigator = createStackNavigator({
   Profile: {
     screen: ProfileScreen,
-    navigationOptions: {
-      headerTitle: 'Profile'
+    navigationOptions: ({ navigation }) => {
+      return ({
+        headerTitle: 'Profile',
+        headerRight: (
+          <HeaderButtons HeaderButtonComponent={FontAwesomeHeaderButton}>
+            <Item
+              title="Edit"
+              // Pilih icon
+              iconName="pencil"
+              // Buka AlertScreen sebagai stack
+              onPress={() => {
+                navigation.navigate("EditProfile")
+              }}
+            />
+          </HeaderButtons>
+        )
+      })
     }
   },
   AddEditChild: { 
@@ -142,8 +188,23 @@ const ProfileNavigator = createStackNavigator({
   },
   EditProfile: { 
     screen: EditProfileScreen,
-    navigationOptions: {
-      headerTitle: 'Edit Profile'
+    navigationOptions: ({ navigation }) => {
+      return ({
+        headerTitle: 'Edit Profile',        
+        headerRight: (
+          <HeaderButtons HeaderButtonComponent={FontAwesomeHeaderButton}>
+            <Item
+              title="Edit"
+              // Pilih icon
+              iconName="pencil"
+              // Buka AlertScreen sebagai stack
+              onPress={() => {
+                navigation.navigate("EditProfile")
+              }}
+            />
+          </HeaderButtons>
+        )
+      })
     }
   }
 },{
@@ -171,12 +232,7 @@ const mainTabNavigatorCfg =   {
         },
         tabBarIcon: ({tintColor}) => {
           return (
-            <IconBadge
-              MainElement={<FontAwesome name='newspaper-o' size={25} color={tintColor} />}
-              BadgeElement={<Text style={{ color: 'white' }}>{3}</Text>}
-              IconBadgeStyle={{top: -8, right: -8, width:20, height:20, backgroundColor: Colors.secondaryColor}}
-              Hidden={false}
-            />
+            <FontAwesomeBadgedIcon name='newspaper-o' count={5} size={25} color={tintColor} />
           );
         }
       }
@@ -225,4 +281,4 @@ const MainNavigator = createSwitchNavigator({
     initialRouteName: 'Splash'
 });
 
-export default createAppContainer(MainNavigator); 
+export default createAppContainer(MainNavigator);
