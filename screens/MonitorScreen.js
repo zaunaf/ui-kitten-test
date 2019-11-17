@@ -5,11 +5,26 @@ import Colors from '../constants/Colors';
 import IconBadge from 'react-native-icon-badge';
 import { Feather, FontAwesome } from '@expo/vector-icons';
 
+import { useSelector } from 'react-redux';
 
 const MonitorScreen = props => {
+  
+  const { isLoggedIn, email } = useSelector(state => ({
+    isLoggedIn: state.auth.isLoggedIn,
+    email: state.auth.email
+  }));
+
+  let welcome;
+  if (isLoggedIn) {
+    welcome = <Text>Selamat datang {email}</Text>
+  } else {
+    welcome = <Text>Belum login ya oom..</Text>
+  }
+ 
   return (
     <Layout style={styles.screen}>
       <Text>Monitor Screen</Text>
+      {welcome}
     </Layout>
   );
 };

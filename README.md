@@ -1136,7 +1136,8 @@ Jalankan di bash shell anda (jangan pakai `cmd`, script tsc adalah script bash):
 ```
 
 Kemudian cek `dist/tsc-out`. Rename `tsc-out` menjadi `kitten`, kemudian salin ke folder
-proyek anda. Di root proyek anda ada `babel.config.js`, ubah menjadi seperti ini:
+proyek anda. Di root proyek anda ada `babel.config.js`, ubah menjadi seperti ini agar
+_absolute path / alias_ nya jalan lancar:
 
 ```js
 module.exports = function(api) {
@@ -1157,6 +1158,22 @@ module.exports = function(api) {
   };
 };
 ```
+
+Buat juga `jsconfig.json` di root folder jika anda menggunakan VSCode agar link library-nya juga mengikuti:
+```js
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "baseUrl": "./",
+        "paths": {
+          "@src/*": ["./kitten/*"],
+          "@kitten/*" : ["react-native-ui-kitten"],
+        }
+    }
+}
+```
+
 Tambahkan juga di `.gitignore` agar folder kitten ini tidak memenuh2i repo anda:
 ```
 kitten/
@@ -1328,3 +1345,276 @@ const MainNavigator = createSwitchNavigator({
 });
 ```
 
+## React State dan Redux
+
+Cara kerja react yang membedakannya dari JS library lain adalah reactive programmingnya.
+Tidak seperti cara kerja standard javascript dan library-library js yang populer pada umumnya 
+yang bekerja secara prosedural, reactive programming bekerja dengan memantau suatu state,
+dan bereaksi ketika ada update pada state tersebut. Itu garis besarnya.
+
+Penerapan reactjs sendiri berevolusi. Misalnya dulu `class based component` adalah mainstream
+implementasi strukturisasi komponen react. Sekarang jadi `functional component` untuk menghindari
+composition hell. Dulu juga kita menggunakan variabel `state`, membongkarpasangnya di mana2. 
+Sekarang dengan `hooks`, tidak perlu lagi. Aplikasi jadi lebih rapi ditulisnya, walaupun 
+mungkin makin counter intuitive bagi beginner. Bagi aplikasi yg kompleks, state pun lebih cocok
+dikelola oleh redux. Format jsx yang standard pun pelan2 digeser 
+oleh tsx, yaitu format typescript dari jsx.
+
+Kali ini kita mencoba menerapkan react pada react native menggunakan teknologi terkini, fungsional, hooks
+dan redux. Tsx mungkin ditunda dulu karena bagi beginner react rasanya menggunakan tsx akan counterproductive.
+
+### Mencoba Authentikasi Dummy dengan React State
+
+Skenarionya adalah jika user masuk dengan memencet login pada Google, maka muncul 'welcome logged user'
+dan kita hilangkan skipnya untuk kemudian secara otomatis navigate ke screen utama.
+
+Kita refactor `SplashScreen.js` menjadi seperti ini:
+```js
+import React, { useState } from 'react';
+...
+const SplashScreen = props => {
+  
+  // Definisikan nama state dan fungsi untuk mengubah state tsb, serta initial statenya ('')
+  // Username state
+  const [username, setUsername] = useState('');
+  // isLoggedIn state
+  const [isLoggedIn, setisLoggedIn] = useState(false);
+
+  // Definisikan code fungsi action yg bisa dipanggil aplikasi untuk mengubah state 
+  const loginHandler = (newUsername) => {
+    
+    setisLoggedIn(true);
+    setUsername(newUsername);
+
+  }
+
+  if (!isLoggedIn) {
+    button = <Button icon={GoogleIcon} onPress={() => loginHandler('Logged User')}>Login with Google</Button>;
+    skip = <Text style={{color: 'blue', marginTop: 15}} onPress={()=> { props.navigation.navigate('Main'); }}>Skip</Text>;
+  } else {
+    button = <Text>Welcome {username}!</Text>
+    skip = <Text>&nbsp;</Text>
+  }
+
+  return (
+    <Layout style={styles.container}>
+      <Text style={styles.text} category='h4'>UIK Test App</Text>
+      {button}
+      {skip}
+    </Layout>
+  )
+```
+
+Silakan dicoba. Klik login dengan Google, sistem akan merespons dengan mengubah tombol tadi 
+menjadi welcome dan menghilangkan 'skip'. Jika sudah oke, kita tambahkan code untuk pindah navigasi.
+```js
+  const loginHandler = (newUsername) => {
+    ...
+    setTimeout(() => {
+      props.navigation.navigate('Main');
+    }, 1000);    
+  }
+```
+
+### Mencoba Authentikasi Dummy dengan Redux
+
+Skenarionya adalah jika user masuk dengan memencet login pada Google, maka user profile akan tampil.
+Jika yang dipencet skip maka user tidak akan tampil. Karena screennya beda, kita tidak bisa pakai
+user state karena kita tidak bisa passing state menggunakan props. Maka kita langsung belajar
+untuk menggunakan redux. Dengan redux, manajemen state menjadi mudah sekali karena sumber kebenaran 
+suatu state di-pooling di satu tempat, application-wide. Jadi tidak usah lagi kita wiring sana sini
+hanya untuk mengelola state.
+
+[![uik_redux](/images/mobile/react_native/uik_redux.gif)](/images/mobile/react_native/uik_redux.gif)
+
+Kita coba.
+
+#### Instalasi 
+
+Kita install dulu paket-paket yang dibutuhkan untuk react redux:
+```bash
+expo install react-redux redux
+```
+
+#### Code
+Kita buat folder `store`, `store/actions` dan `store/reducers`.
+
+Kita buat actions dulu `store/actions/auth.js`:
+```js
+export const GOOGLE_SIGNIN = 'GOOGLE_SIGNIN';
+
+export const googleSignin = (email) => {
+    return { type : GOOGLE_SIGNIN, email : email }
+}
+```
+
+Lalu reducersnya `store/reducers/auth.js`:
+```js
+import { GOOGLE_SIGNIN } from '../actions/auth';
+
+const initialState = {
+    email: string
+}
+
+const authReducer = ( state = initialState, action ) => {
+    switch (action.type) {
+        case GOOGLE_SIGNIN:            
+            return { ...state, email: action.email };
+        default:
+            return state;
+    }
+}
+```
+
+Tambahkan insialisasi redux di `App.js`:
+```js
+// Redux stuff
+import { createStore, combineReducers } from 'redux'
+import authReducer from './store/reducers/auth';
+import { Provider } from 'react-redux'
+
+const rootReducer = combineReducers({
+  auth: authReducer
+});
+
+const store = createStore(rootReducer);
+...
+```
+
+Serta bungkus App dengan `Provider`:
+```js
+// Main
+const App = () => (
+  <Provider store={store}>
+    <ApplicationLoader assets={assets}>
+    ...
+    </ApplicationLoader>
+  </Provider>
+);
+```
+Jika refresh harusnya tidak ada error.
+
+#### Menerapkan State Redux pada UI
+
+Agar gampang kita pake saja dulu screen yang kosong untuk menampilkan UI.
+Kita pakai `Monitor.js` dan `TransactionScreen.js`. Kita juga ubah manajemen
+state yang kita pakai di `SplashScreen.js`.
+
+Kita ubah `SplashScreen.js`, agar skenario sebelumnya kembali berjalan:
+```js
+import { useDispatch, useSelector } from 'react-redux';
+...
+const SplashScreen = props => {
+  
+  // Manajemen state lama dengan `useState`. Silakan dicomment atau dihapus
+  
+  // Username state
+  // const [username, setUsername] = useState('');
+  // isLoggedIn state
+  // const [isLoggedIn, setisLoggedIn] = useState(false);
+  
+  // Fungsi dari react redux untuk mengambil state
+  const { isLoggedIn, email } = useSelector(state => ({
+    isLoggedIn: state.auth.isLoggedIn,
+    email: state.auth.email
+  }));
+  
+  // Use Selector versi local state. Silakan dicomment atau dihapus
+
+  // const isLoggedIn = useSelector(state => state.auth.isLoggedIn);
+  // const email = useSelector(state => state.auth.email); 
+
+  // Cek perubahannya
+  console.log("Email " + email);
+  console.log("isLoggedIn " + isLoggedIn);
+  
+  // Fungsi dari react redux untuk menendang action
+  const dispatch = useDispatch();
+
+  // Definisikan code fungsi action yg bisa dipanggil aplikasi untuk mengubah state 
+  const loginHandler = (newEmail) => {
+    // setisLoggedIn(true);
+    // setemail(newEmail);
+    dispatch(googleSignin(newEmail));
+
+    // Tunggu sebentar, kemudian navigate
+    setTimeout(() => {
+      props.navigation.navigate('Main');
+    }, 1000);
+  }
+
+  let button;
+  let skip;
+
+  if (!isLoggedIn) {
+    button = <Button icon={GoogleIcon} onPress={() => loginHandler('Logged User')}>Login with Google</Button>;
+    skip = <Text style={{color: 'blue', marginTop: 15}} onPress={()=> { props.navigation.navigate('Main'); }}>Skip</Text>;
+  } else {
+    button = <Text>Welcome {email}!</Text>
+    skip = <Text>&nbsp;</Text>
+  }
+
+  return (
+    <Layout style={styles.container}>
+      <Text style={styles.text} category='h4'>UIK Test App</Text>
+      {button}
+      {skip}
+    </Layout>
+  )
+};
+```
+
+Kita ambil statenya untuk di `MonitorScreen.js`:
+```js
+import { useSelector } from 'react-redux';
+
+const MonitorScreen = props => {
+  
+  const { isLoggedIn, email } = useSelector(state => ({
+    isLoggedIn: state.auth.isLoggedIn,
+    email: state.auth.email
+  }));
+
+  let welcome;
+  if (isLoggedIn) {
+    welcome = <Text>Selamat datang {email}</Text>
+  } else {
+    welcome = <Text>Belum login ya oom..</Text>
+  }
+ 
+  return (
+    <Layout style={styles.screen}>
+      <Text>Monitor Screen</Text>
+      {welcome}
+    </Layout>
+  );
+};
+...
+```
+
+Dan `TransactionScreen.js`:
+```js
+import { useSelector } from 'react-redux';
+
+const TransactionScreen = props => {
+
+  const { isLoggedIn, email } = useSelector(state => ({
+    isLoggedIn: state.auth.isLoggedIn,
+    email: state.auth.email
+  }));
+
+  let welcome;
+  if (isLoggedIn) {
+    welcome = <Text>Selamat datang {email}</Text>
+  } else {
+    welcome = <Text>Belum login ya oom..</Text>
+  }
+
+  return (
+    <Layout style={styles.screen}>
+      <Text>Transaction Screen</Text>
+      {welcome}
+    </Layout>
+  );
+};
+```
