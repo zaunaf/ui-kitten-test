@@ -78,19 +78,6 @@ const HomeNavigator = createStackNavigator({
         )
       });
     }
-  },
-  Alert: { 
-    screen: AlertScreen,
-    navigationOptions: {
-      headerTitle: 'Alert'
-    }
-
-  },
-  Chat: { 
-    screen: ChatScreen,
-    navigationOptions: {
-      headerTitle: 'Chat'
-    }
   }
 },{
   defaultNavigationOptions: defaultStackNavigationOptions
@@ -103,19 +90,7 @@ const UpdatesNavigator = createStackNavigator({
     navigationOptions: {
       headerTitle: 'Updates'
     }
-  },
-  News: {
-    screen: NewsScreen,
-    navigationOptions: {
-      headerTitle: 'News'
-    }
-  },
-  Mail: {
-    screen: MailScreen,
-    navigationOptions: {
-      headerTitle: 'Mail'
-    }
-  },
+  }
 },{
   defaultNavigationOptions: defaultStackNavigationOptions
 });
@@ -190,20 +165,7 @@ const ProfileNavigator = createStackNavigator({
     screen: EditProfileScreen,
     navigationOptions: ({ navigation }) => {
       return ({
-        headerTitle: 'Edit Profile',        
-        headerRight: (
-          <HeaderButtons HeaderButtonComponent={FontAwesomeHeaderButton}>
-            <Item
-              title="Edit"
-              // Pilih icon
-              iconName="pencil"
-              // Buka AlertScreen sebagai stack
-              onPress={() => {
-                navigation.navigate("EditProfile")
-              }}
-            />
-          </HeaderButtons>
-        )
+        headerTitle: 'Edit Profile'
       })
     }
   }
@@ -274,9 +236,44 @@ const mainTabNavigatorCfg =   {
 
 const MainTabNavigator = createBottomTabNavigator(mainTabNavigatorCfg);
 
+const MainNav = createStackNavigator({
+  MainTabNav: {
+    screen: MainTabNavigator,
+    navigationOptions: {
+      // headerMode: 'none'
+      header: null
+    }
+  },
+  Alert: { 
+    screen: AlertScreen,
+    navigationOptions: {
+      headerTitle: 'Alert'
+    }
+  },
+  Chat: { 
+    screen: ChatScreen,
+    navigationOptions: {
+      headerTitle: 'Chat'
+    }
+  },
+  // Updates
+  News: {
+    screen: NewsScreen,
+    navigationOptions: {
+      headerTitle: 'News'
+    }
+  },
+  Mail: {
+    screen: MailScreen,
+    navigationOptions: {
+      headerTitle: 'Mail'
+    }
+  },
+});
+
 const MainNavigator = createSwitchNavigator({
     Splash: SplashScreen,
-    Main: MainTabNavigator
+    Main: MainNav
 },{
     initialRouteName: 'Splash'
 });

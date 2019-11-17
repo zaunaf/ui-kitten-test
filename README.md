@@ -1267,3 +1267,64 @@ export default ProfileScreen;
 
 ```
 Sesuakan sampai stylesnya juga.
+
+Hasilnya begini:
+
+[![uik_link_kitten_mockups](/images/mobile/react_native/uik_link_kitten_mockups.gif)](/images/mobile/react_native/uik_link_kitten_mockups.gif)
+
+
+### Alternatif Navigasi
+
+Kita bisa lihat bahwa navigasi kita agak kurang enak dilihat. Tab terlalu mendominasi. Lebih baik sepertinya jika
+ketika child tab dibuka, dia menutup tabnya. 
+
+Kita coba pertama kita hapus anak-anak screen dari tiap tab (biarkan stacknya), pindahkan bersama MainTabNavigator ke `MainNav`,
+sehingga antara MaintTab dengan anak2 itu sejajar.
+
+```js
+const MainNav = createStackNavigator({
+  MainTabNav: {
+    screen: MainTabNavigator,
+    navigationOptions: {
+      // headerMode: 'none'
+      header: null
+    }
+  },
+  Alert: { 
+    screen: AlertScreen,
+    navigationOptions: {
+      headerTitle: 'Alert'
+    }
+  },
+  Chat: { 
+    screen: ChatScreen,
+    navigationOptions: {
+      headerTitle: 'Chat'
+    }
+  },
+  // Updates
+  News: {
+    screen: NewsScreen,
+    navigationOptions: {
+      headerTitle: 'News'
+    }
+  },
+  Mail: {
+    screen: MailScreen,
+    navigationOptions: {
+      headerTitle: 'Mail'
+    }
+  },
+});
+```
+
+Lalu ganti di MainNavigator untuk posisi Main diganti MainNav tadi:
+```js
+const MainNavigator = createSwitchNavigator({
+    Splash: SplashScreen,
+    Main: MainNav
+},{
+    initialRouteName: 'Splash'
+});
+```
+
